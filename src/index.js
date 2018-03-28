@@ -43,6 +43,20 @@ function preload() {
 let office = [];
 let developers = [];
 let cards = [];
+let skills = [
+  {
+    name: 'Skill 1',
+    color: 0xff0000
+  },
+  {
+    name: 'Skill 2',
+    color: 0x00ff00
+  },
+  {
+    name: 'Skill 3',
+    color: 0x0000ff
+  }
+];
 
 function create() {
   let wall = game.add.tileSprite(0, 408, 800, 192, 'wall');
@@ -68,14 +82,13 @@ function create() {
   // Overlaying furniture
   office.push(game.add.sprite(280, 504, 'chair'));
   developers.push(game.add.sprite(276, 520, 'office-guy'));
-  office.push(developers[developers.length -1]);
+  office.push(developers[developers.length - 1]);
   office.push(game.add.sprite(250, 504, 'desk'));
 
   office.push(game.add.sprite(380, 504, 'chair'));
   developers.push(game.add.sprite(376, 520, 'office-guy'));
-  office.push(developers[developers.length -1]);
+  office.push(developers[developers.length - 1]);
   office.push(game.add.sprite(350, 504, 'desk'));
-
 
   office.push(game.add.sprite(480, 504, 'chair'));
   developers.push(game.add.sprite(476, 520, 'office-guy'));
@@ -97,20 +110,25 @@ function create() {
   this.card = game.add.sprite(50, 50, cardTmp.generateTexture());
   cardTmp.destroy();
   this.text = game.add.text(10, 16, '5', 'Courier New');
-  this.card.progress = game.add.graphics(10,10);
-  this.card.progress.value = 60;
-  this.card.progress.draw = function(){
-      this.clear();
-      this.moveTo(0,0);
-      this.lineStyle(6, 0x00ff00, 1);
-      this.lineTo(this.value , 0);
-  };
-  this.card.progress.draw();
+  this.card.progress = game.add.graphics(10, 10);
+  this.card.progress.value = 100;
+  this.card.progress.draw = function() {
+    this.clear();
 
+    let x = 0;
+
+    this.requiredSkills.forEach((skill, index) => {
+      let val = 0.6 * this.value * skill.value / 100;
+
+      this.moveTo(x, 0);
+      this.lineStyle(6, skill.skill.color, 1);
+      this.lineTo(x + val, 0);
+      x += val;
+    });
+  };
 
   this.card.addChild(this.text);
   this.card.addChild(this.card.progress);
-
 
   cards.push(this.card);
 
@@ -120,43 +138,67 @@ function create() {
     card.events.onDragStop.add(onCardDragStop(card), this);
     card.events.onDragStart.add(onCardDragStart(card), this);
     card.events.onDragUpdate.add(onDragUpdate(card), this);
+    card.progress.requiredSkills = createSkill(100);
+    card.progress.draw();
+  });
+
+  developers.forEach(dev => {
+    dev.skills = createSkill(200);
+  });
+}
+
+function createSkill(total = 150) {
+  return skills.map((skill, index) => {
+    let value = Math.random() * 100;
+
+    value = Math.min(value, total);
+
+    if ((index + 1) === skills.length) {
+        value = total;
+    }
+
+    total -= value;
+
+    return {
+      skill,
+      value
+    };
   });
 }
 
 function update() {
-    cards.forEach((card => {
-        if (card.allocated){
-            if (this.card.progress.value > 0){
-                this.card.progress.value = this.card.progress.value - 0.5;
-            } else {
-
-                this.card.tint = 0x00ff00;
-            }
-            this.card.progress.draw();
-            // this.card.progress.line
-        }
-    }));
+  cards.forEach(card => {
+    if (card.allocated) {
+      if (this.card.progress.value > 0) {
+        this.card.progress.value = this.card.progress.value - 0.5;
+      } else {
+        this.card.tint = 0x00ff00;
+      }
+      this.card.progress.draw();
+      // this.card.progress.line
+    }
+  });
 
   // ¯ \_(ツ)_/¯
   // "surprise me"
 }
 
 function onDragUpdate(card) {
-    return function() {
-        card.target = null;
+  return function() {
+    card.target = null;
 
-        developers.forEach(dev => {
-            let boundsA = card.getBounds();
-            let boundsB = dev.getBounds();
+    developers.forEach(dev => {
+      let boundsA = card.getBounds();
+      let boundsB = dev.getBounds();
 
-            if (Phaser.Rectangle.intersects(boundsA, boundsB)) {
-              dev.tint = 0xaaffaa;
-              card.target = dev;
-            } else {
-              dev.tint = 0xffffff;
-            }
-        });
-    }
+      if (Phaser.Rectangle.intersects(boundsA, boundsB)) {
+        dev.tint = 0xaaffaa;
+        card.target = dev;
+      } else {
+        dev.tint = 0xffffff;
+      }
+    });
+  };
 }
 
 function onCardDragStart(card) {
