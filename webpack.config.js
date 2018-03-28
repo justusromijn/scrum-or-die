@@ -10,5 +10,6 @@ module.exports = {
         publicPath: '/assets/scripts/',
         contentBase: path.join(__dirname, 'public'),
         port: 3000
-    }
+    },
+    devtool: 'inline-source-map'
 };
