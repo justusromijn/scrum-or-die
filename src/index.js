@@ -66,26 +66,21 @@ function create() {
   office.push(game.add.sprite(420, 504, 'window-tiled'));
 
   // Overlaying furniture
-
   office.push(game.add.sprite(280, 504, 'chair'));
-
-  this.officeGuyOne = game.add.sprite(276, 520, 'office-guy');
-
-  developers.push(this.officeGuyOne);
-  office.push(this.officeGuyOne);
+  developers.push(game.add.sprite(276, 520, 'office-guy'));
+  office.push(developers[developers.length -1]);
   office.push(game.add.sprite(250, 504, 'desk'));
 
   office.push(game.add.sprite(380, 504, 'chair'));
-  this.officeGuyTwo = game.add.sprite(376, 520, 'office-guy');
-  office.push(this.officeGuyTwo);
+  developers.push(game.add.sprite(376, 520, 'office-guy'));
+  office.push(developers[developers.length -1]);
   office.push(game.add.sprite(350, 504, 'desk'));
-  developers.push(this.officeGuyTwo);
+
 
   office.push(game.add.sprite(480, 504, 'chair'));
-  this.officeGuyThree = game.add.sprite(476, 520, 'office-guy');
-  office.push(this.officeGuyThree);
+  developers.push(game.add.sprite(476, 520, 'office-guy'));
   office.push(game.add.sprite(450, 504, 'desk'));
-  developers.push(this.officeGuyThree);
+  office.push(developers[developers.length - 1]);
 
   office.forEach(office => {
     office.scale.x = 2;
@@ -98,33 +93,58 @@ function create() {
   cardTmp.drawRect(0, 0, 80, 50);
   cardTmp.endFill();
   cardTmp.moveTo(10, 10);
-  cardTmp.lineStyle(6, 0x00ff00, 1);
-  cardTmp.lineTo(70, 10);
 
   this.card = game.add.sprite(50, 50, cardTmp.generateTexture());
+  cardTmp.destroy();
   this.text = game.add.text(10, 16, '5', 'Courier New');
+  this.card.progress = game.add.graphics(10,10);
+  this.card.progress.value = 60;
+  this.card.progress.draw = function(){
+      this.clear();
+      this.moveTo(0,0);
+      this.lineStyle(6, 0x00ff00, 1);
+      this.lineTo(this.value , 0);
+  };
+  this.card.progress.draw();
+
 
   this.card.addChild(this.text);
-  cardTmp.destroy();
+  this.card.addChild(this.card.progress);
+
 
   cards.push(this.card);
 
-  this.cards.forEach(card => {
+  cards.forEach(card => {
     card.inputEnabled = true;
     card.input.enableDrag(true);
-    card.events.onDragStop.add(onDragStop(card), this);
+    card.events.onDragStop.add(onCardDragStop(card), this);
     card.events.onDragStart.add(onCardDragStart(card), this);
     card.events.onDragUpdate.add(onDragUpdate(card), this);
   });
 }
 
 function update() {
+    cards.forEach((card => {
+        if (card.allocated){
+            if (this.card.progress.value > 0){
+                this.card.progress.value = this.card.progress.value - 0.5;
+            } else {
+
+                this.card.tint = 0x00ff00;
+            }
+            this.card.progress.draw();
+            // this.card.progress.line
+        }
+    }));
+
   // ¯ \_(ツ)_/¯
   // "surprise me"
 }
 
 function onDragUpdate(card) {
     return function() {
+        card.target = null;
+
         developers.forEach(dev => {
             let boundsA = card.getBounds();
             let boundsB = dev.getBounds();
@@ -134,7 +154,6 @@ function onDragUpdate(card) {
               card.target = dev;
             } else {
               dev.tint = 0xffffff;
-              card.target = null;
             }
         });
     }
@@ -142,6 +161,7 @@ function onDragUpdate(card) {
 
 function onCardDragStart(card) {
   return function() {
+    card.allocated = false;
     card.scale.setTo(1, 1);
   };
 }
@@ -149,9 +169,9 @@ function onCardDragStart(card) {
 function onCardDragStop(card) {
   return function() {
     if (card.target) {
+      card.allocated = true;
       card.scale.setTo(0.5, 0.5);
       card.position.setTo(card.target.x - 30, card.target.y - 10);
-      console.log('DROPPED ON SOMETHING');
     }
   };
 }
