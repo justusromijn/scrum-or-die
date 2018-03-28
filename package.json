@@ -26,6 +26,7 @@
   },
   "homepage": "https://github.com/justusromijn/scrum-or-die#readme",
   "dependencies": {
+    "eslint": "^4.19.1",
     "phaser-ce": "^2.10.3"
   },
   "devDependencies": {
