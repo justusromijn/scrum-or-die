@@ -4,8 +4,8 @@
   "description": "Sarcastic game about scrum development",
   "main": "index.js",
   "scripts": {
-    "bundle": "webpack --config webpack.config.js",
-    "serve": "http-server",
+    "start": "webpack-dev-server",
+    "build": "webpack",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -26,11 +26,12 @@
   },
   "homepage": "https://github.com/justusromijn/scrum-or-die#readme",
   "dependencies": {
-    "http-server": "^0.11.1",
     "phaser-ce": "^2.10.3"
   },
   "devDependencies": {
+    "expose-loader": "^0.7.5",
     "webpack": "^4.3.0",
-    "webpack-cli": "^2.0.13"
+    "webpack-cli": "^2.0.13",
+    "webpack-dev-server": "^3.1.1"
   }
 }
