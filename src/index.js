@@ -97,7 +97,7 @@ function create() {
     let x = 0;
 
     this.requiredSkills.forEach((skill, index) => {
-      let val = 0.6 * this.value * skill.value / 100;
+      let val = 0.6 * skill.currentValue;
 
       this.moveTo(x, 0);
       this.lineStyle(6, skill.skill.color, 1);
@@ -122,25 +122,44 @@ function create() {
   });
 
   developers.forEach(dev => {
-    dev.skills = createSkill(200);
+    dev.skillset = game.add.graphics(-10, -10);
+    dev.skillset.skills = createSkill(100);
+    dev.addChild(dev.skillset);
+
+    dev.skillset.draw = function() {
+      this.clear();
+      let x = 0;
+
+      this.skills.forEach((skill, index) => {
+        let val = 0.4 * skill.value;
+
+        this.moveTo(x, 0);
+        this.lineStyle(4, skill.skill.color, 1);
+        this.lineTo(x + val, 0);
+        x += val;
+      });
+    };
+
+    dev.skillset.draw();
   });
 }
 
-function createSkill(total = 150) {
+function createSkill(total = 100) {
   return skills.map((skill, index) => {
     let value = Math.random() * 100;
 
     value = Math.min(value, total);
 
-    if ((index + 1) === skills.length) {
-        value = total;
+    if (index + 1 === skills.length) {
+      value = total;
     }
 
     total -= value;
 
     return {
       skill,
-      value
+      value,
+      currentValue: value
     };
   });
 }
@@ -148,13 +167,29 @@ function createSkill(total = 150) {
 function update() {
   cards.forEach(card => {
     if (card.allocated) {
-      if (this.card.progress.value > 0) {
-        this.card.progress.value = this.card.progress.value - 0.5;
-      } else {
-        this.card.tint = 0x00ff00;
+      let remaining = 0;
+
+      card.progress.requiredSkills.forEach(skill => {
+        if (skill.currentValue > 0) {
+          const devSkill = card.target.skillset.skills.find(sk => sk.skill.name === skill.skill.name);
+
+          console.log(devSkill);
+
+          skill.currentValue -= devSkill.value / 100 * 0.5;
+
+          if (skill.currentValue < 0) {
+            skill.currentValue = 0;
+          }
+
+          remaining += skill.currentValue;
+        }
+      });
+
+      if(remaining === 0) {
+          card.tint = 0x00FF00;
       }
+
       this.card.progress.draw();
-      // this.card.progress.line
     }
   });
 
