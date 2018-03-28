@@ -4,8 +4,8 @@
  * Split sprints, have some sort of planning phase
  * Drop cards on developers, so they are "in progress", and able to drag them back to the board
  */
-import loadState from "./states/load";
-import menuState from "./states/menu";
+import loadState from './states/load';
+import menuState from './states/menu';
 
 const PIXI = window.PIXI;
 const p2 = window.p2;
@@ -13,11 +13,11 @@ const Phaser = window.Phaser;
 
 let game = new Phaser.Game(800, 600, Phaser.AUTO, '');
 
-game.state.add("load", loadState(game));
-game.state.add("menu", menuState(game));
-game.state.start("load");
+game.state.add('load', loadState(game));
+game.state.add('menu', menuState(game));
+game.state.start('load');
 
-game.state.add("play", { create: create, update: update });
+game.state.add('play', { create: create, update: update });
 
 let office = [];
 let developers = [];
@@ -144,24 +144,26 @@ function create() {
   });
 }
 
-function createSkill(total = 100) {
-  return skills.map((skill, index) => {
+function createSkill() {
+  let total = 0;
+
+  let set = skills.map((skill, index) => {
     let value = Math.random() * 100;
 
-    value = Math.min(value, total);
-
-    if (index + 1 === skills.length) {
-      value = total;
-    }
-
-    total -= value;
+    total += value;
 
     return {
       skill,
-      value,
-      currentValue: value
+      value
     };
   });
+
+  set.forEach(skill => {
+      skill.value = skill.value / total * 100;
+      skill.currentValue = skill.value;
+  });
+
+  return set;
 }
 
 function update() {
@@ -173,8 +175,6 @@ function update() {
         if (skill.currentValue > 0) {
           const devSkill = card.target.skillset.skills.find(sk => sk.skill.name === skill.skill.name);
 
-          console.log(devSkill);
-
           skill.currentValue -= devSkill.value / 100 * 0.5;
 
           if (skill.currentValue < 0) {
@@ -185,8 +185,8 @@ function update() {
         }
       });
 
-      if(remaining === 0) {
-          card.tint = 0x00FF00;
+      if (remaining === 0) {
+        card.tint = 0x00ff00;
       }
 
       this.card.progress.draw();
